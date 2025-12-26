@@ -48,6 +48,8 @@
             margin: 20px auto;
             width: max-content;
             border-radius: 4px;
+            /* Запрещаем выделение текста и вызов меню на уровне сетки */
+            -webkit-touch-callout: none;
         }
 
         .cell {
@@ -224,6 +226,13 @@
         const restartBtn = document.getElementById('restart-btn');
         const modal = document.getElementById('game-modal');
 
+        // Global context menu disable for the board area
+        gridElement.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }, true);
+
         function initGame() {
             const diff = difficultySelect.value;
             rows = CONFIG[diff].rows;
@@ -255,8 +264,22 @@
                     cellEl.classList.add('cell');
                     cellEl.dataset.row = r;
                     cellEl.dataset.col = c;
-                    cellEl.addEventListener('click', () => handleCellClick(r, c));
-                    cellEl.addEventListener('contextmenu', (e) => { e.preventDefault(); handleRightClick(r, c); });
+                    
+                    // Left Click
+                    cellEl.addEventListener('click', (e) => {
+                        handleCellClick(r, c);
+                    });
+                    
+                    // Right Click explicitly blocked and handled
+                    cellEl.addEventListener('mousedown', (e) => {
+                        if (e.button === 2) { // 2 is right click
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleRightClick(r, c);
+                            return false;
+                        }
+                    });
+
                     gridElement.appendChild(cellEl);
                     grid[r][c] = { isMine: false, isRevealed: false, isFlagged: false, neighborMines: 0, element: cellEl };
                 }
